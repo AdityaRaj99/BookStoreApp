@@ -1,22 +1,47 @@
 import React from 'react'
 import { useForm } from "react-hook-form"
-import { Link } from 'react-router-dom'
+import axios from 'axios'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import Login from './Login'
+import toast from 'react-hot-toast'
 
 function Signup() {
+    const location = useLocation()
+    const navigate = useNavigate()
+    const from  = location.state?.from?.pathname || "/"
         const {
             register,
             handleSubmit,
             formState: { errors },
           } = useForm()
         
-          const onSubmit = (data) => console.log(data)
+          const onSubmit = async (data) => {
+            const userInfo ={
+                fullname: data.fullname,
+                email: data.email,
+                password: data.password,
+            }
+            await axios.post("http://localhost:4001/user/signup", userInfo)
+            .then((res) => {
+                console.log(res.data);
+                if(res.data){
+                    toast.success('Signup Successful');
+                    navigate(from, { replace: true })
+                }
+                localStorage.setItem("Users",JSON.stringify(res.data.user))
+            }).catch((err) => {
+               if(err.response){
+                console.log(err);
+                toast.error("Error: " + err.response.data.message);
+               }
+            })
+          }
     return (
         <>
-            <div className="flex h-screen items-center justify-center">
-                <div >
-                    <div className="modal modal-open">
-                        <div className="modal-box w-[435px]">
+            <div className="flex h-screen items-center justify-center ">
+                <div className=''>
+                    <div className="modal modal-open ">
+                        <div className="modal-box w-[435px] dark:bg-gray-900 dark:text-white">
                             <form onSubmit={handleSubmit(onSubmit)}  method="dialog">
                                 {/* if there is a button in form, it will close the modal */}
                                 <Link
@@ -29,10 +54,10 @@ function Signup() {
                             <h3 className="font-bold text-lg">Signup</h3>
                             <div className='mt-4 space-y-2'>
                                 <span>Name</span><br />
-                                <input type="text" name="" id="" placeholder='Enter your full name' className='w-80 px-3 border py-1 rounded-md outline-none' 
-                                {...register("name", { required: true })}/>
+                                <input type="text" placeholder='Enter your fullname' className='w-80 px-3 border py-1 rounded-md outline-none' 
+                                {...register("fullname", { required: true })}/>
                                 <br />
-                                {errors.name && <span className='text-sm text-red-500'>This field is required</span>}
+                                {errors.fullname && <span className='text-sm text-red-500'>This field is required</span>}
                             </div>
                             {/* Email */}
                             <div className='mt-4 space-y-2'>
